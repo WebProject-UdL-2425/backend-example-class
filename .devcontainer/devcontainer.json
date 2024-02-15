@@ -15,7 +15,8 @@
 		"vscode": {
 			"settings": {},
 			"extensions": [
-				"humao.rest-client"
+				"humao.rest-client",
+				"ms-vsliveshare.vsliveshare"
 			]
 		}
 	}
