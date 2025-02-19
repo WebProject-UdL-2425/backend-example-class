@@ -6,63 +6,68 @@ const db = new sqlite3.Database(":memory:")
 db.serialize(() => {
     db.run("CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, content TEXT, important BOOLEAN)")
     db.run('INSERT INTO notes (content, important) VALUES ("html is easy", FALSE)')
-    db.run('INSERT INTO notes (content, important) VALUES ("html is hard", NOTES)')
+    db.run('INSERT INTO notes (content, important) VALUES ("html is hard", TRUE)')
 })
 
 const app = express()
 
 app.use(express.json())
 
-let notes = [{ id: 1, content: "HTML is easy", important: true },
-{ id: 2, content: "Another", important: false },
-{ id: 3, content: "And one", important: true },
-{ id: 4, content: "HTML is hard", important: true },
-{ id: 5, content: "Another note HELLO", important: false },
-{ id: 6, content: "!!", important: true },
-{ id: 7, content: "HTML", important: true },
-{ id: 8, content: "HTTP", important: false },
-{ id: 9, content: "HTTPS", important: true }
-]
-
 app.get("/", (request, response) => {
     response.send("<h1>Hello world!</h1>")
 })
 
-app.get("/api/notes", (request, response) => {
-    response.json(notes)
+app.get('/api/notes', (request, response) => {
+    db.all("SELECT * FROM notes", (err, rows) => {
+        if (err) {
+            response.status(500).json({ error: err.message })
+        } else {
+            response.json(rows)
+        }
+    })
 })
 
 app.get('/api/notes/:id', (request, response) => {
     const id = Number(request.params.id)
-    const note = notes.find(note => note.id === id)
-    response.json(note)
+    db.get("SELECT * FROM notes WHERE id = ?", [id], (err, row) => {
+        if (err) {
+            response.status(500).json({ error: err.message })
+            return
+        }
+        row
+            ? response.json(row)
+            : response.status(404).end()
+    })
 })
 
 app.delete('/api/notes/:id', (request, response) => {
     const id = Number(request.params.id)
-    notes = notes.filter(note => note.id !== id)
+    db.run(`DELETE FROM notes WHERE id = ${id}`, err => {
+        if (err) {
+            response.status(500).json({ error: err.message })
+        }
+    })
     response.status(204).end()
 })
 
-const generateId = () => {
-    const maxId = notes.length > 0
-        ? Math.max(...notes.map(n => n.id))
-        : 0
-    return maxId + 1
-}
-
 app.post('/api/notes', (request, response) => {
-    const body = request.body
-    if (!body.content) {
+    const note = request.body
+    if (!note.content) {
         return response.status(400).json({ error: 'content missing' })
     }
-    const note = {
-        content: body.content,
-        important: Boolean(body.important) || false,
-        id: generateId(),
-    }
-    notes = notes.concat(note)
-    response.json(note)
+    const sql = "INSERT INTO notes (content, important) VALUES (?, ?)"
+    const params = [note.content, Boolean(note.important) || false]
+    db.run(sql, params, function (err) {
+        if (err) {
+            return response.status(500).json({ error: err.message })
+        }
+        const insertedNote = {
+            id: this.lastID,
+            content: note.content,
+            important: Boolean(note.important) || false
+        }
+        response.json(insertedNote)
+    })
 })
 
 const PORT = 3001

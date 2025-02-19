@@ -2,6 +2,14 @@ GET http://localhost:3001/api/notes
 
 ###
 
+GET http://localhost:3001/api/notes/1 or 1 = 1
+
+###
+
+GET http://localhost:3001/api/notes/4
+
+###
+
 DELETE http://localhost:3001/api/notes/1
 
 ###
