@@ -1,15 +1,9 @@
 const express = require("express")
-const sqlite3 = require('sqlite3').verbose()
-
-const db = new sqlite3.Database(":memory:")
-
-db.serialize(() => {
-    db.run("CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, content TEXT, important BOOLEAN)")
-    db.run('INSERT INTO notes (content, important) VALUES ("html is easy", FALSE)')
-    db.run('INSERT INTO notes (content, important) VALUES ("html is hard", TRUE)')
-})
+const db = require("./utils/db")
+const initDb = require("./models")
 
 const app = express()
+initDb()
 
 app.use(express.json())
 
