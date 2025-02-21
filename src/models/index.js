@@ -1,4 +1,5 @@
 const db = require("../utils/db")
+const notesModel = require("./notes")
 
 // Database initialization
 const initDb = () => {
@@ -9,4 +10,6 @@ const initDb = () => {
     })
 }
 
-module.exports = initDb
+module.exports = {
+    initDb, notesModel
+}
