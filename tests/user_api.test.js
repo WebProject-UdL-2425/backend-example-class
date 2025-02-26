@@ -1,0 +1,44 @@
+const bcrypt = require("bcrypt")
+const assert = require('node:assert')
+const { test, describe, beforeEach } = require('node:test')
+const supertest = require('supertest')
+
+const app = require("../src/app")
+const { usersModel } = require("../src/models")
+const db = require('../src/utils/db')
+
+const api = supertest(app)
+
+describe('when there is initially one user in db', () => {
+    beforeEach(async () => {
+        // Clear the users table
+        db.serialize(() => {
+            db.run('DELETE FROM users')
+        })
+        // Create the root user
+        const rootUser = {
+            username: "root",
+            name: "Root User",
+            passwordHash: await bcrypt.hash("secret", 10)
+        }
+        await usersModel.createUser(rootUser)
+    })
+
+    test('creation succeeds with a fresh username', async () => {
+        const newUser = {
+            username: "newUser",
+            name: "New User",
+            password: "mypsswd"
+        }
+
+        await api
+            .post('/api/users')
+            .send(newUser)
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
+
+        const allUsers = await usersModel.getAllUsers()
+        const usernames = allUsers.map(u => u.username)
+        assert(usernames.includes(newUser.username))
+    })
+})
