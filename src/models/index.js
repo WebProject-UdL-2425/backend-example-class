@@ -6,7 +6,7 @@ const usersModel = require("./users")
 const initDb = () => {
     db.serialize(() => {
         db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, name TEXT, passwordHash TEXT)")
-        db.run("CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, content TEXT, important BOOLEAN, userId INTEGER, FOREIGN KEY userId REFERENCES users(id))")
+        db.run("CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, content TEXT, important BOOLEAN, userId INTEGER, FOREIGN KEY(userId) REFERENCES users(id))")
     })
 }
 
