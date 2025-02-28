@@ -12,4 +12,16 @@ const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
 }
 
-module.exports = { requestLogger, unknownEndpoint }
+const errorHandler = (error, request, response, next) => {
+    if (error.code == "SQLITE_CONSTRAINT"
+        && error.message.includes("UNIQUE constraint failed: users.username")) {
+        response.status(400).json({ error: "expected `username` to be unique" })
+    } else if (error.name === 'JsonWebTokenError') {
+        return response.status(400).json({ error: 'token missing or invalid' })
+    } else {
+        response.status(500).json({ error: error.message })
+    }
+    next(error)
+}
+
+module.exports = { requestLogger, unknownEndpoint, errorHandler }

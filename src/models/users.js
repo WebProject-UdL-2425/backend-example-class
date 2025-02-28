@@ -26,4 +26,13 @@ const getAllUsers = () => {
     })
 }
 
-module.exports = { createUser, getAllUsers }
+const getUserByUsername = username => {
+    return new Promise((resolve, reject) => {
+        const sql = "SELECT * FROM users where users.username = ?"
+        db.get(sql, [username], (err, row) => {
+            err ? reject(err) : resolve(row)
+        })
+    })
+}
+
+module.exports = { createUser, getAllUsers, getUserByUsername }

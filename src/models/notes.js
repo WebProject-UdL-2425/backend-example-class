@@ -24,10 +24,11 @@ const deleteNoteById = id => {
     })
 }
 
-const insertNote = (content, important) => {
+const insertNote = note => {
+    const { content, important, userId } = note
     return new Promise((resolve, reject) => {
-        const sql = "INSERT INTO notes (content, important) VALUES (?, ?)"
-        db.run(sql, [content, important], function (err) {
+        const sql = "INSERT INTO notes (content, important, userId) VALUES (?, ?, ?)"
+        db.run(sql, [content, important, userId], function (err) {
             if (err) { reject(err) }
             else {
                 resolve({
