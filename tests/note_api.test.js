@@ -29,6 +29,7 @@ describe('tests with dummy data in the DB', () => {
     })
 
     test('addition of a note', async () => {
+        // HEY! This should be fixed!
         const newNote = { content: "New note!", important: false }
         await api
             .post("/api/notes")
@@ -43,7 +44,7 @@ describe('tests with dummy data in the DB', () => {
     })
 
     test('deletion of a note', async () => {
-        // TODO
+        // TODO: This is a dummy comment.
     })
 
     afterEach(() => {
