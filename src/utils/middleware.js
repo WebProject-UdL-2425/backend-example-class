@@ -21,7 +21,7 @@ const errorHandler = (error, request, response, next) => {
     } else {
         response.status(500).json({ error: error.message })
     }
-    next(error)
+    //next(error)
 }
 
 module.exports = { requestLogger, unknownEndpoint, errorHandler }

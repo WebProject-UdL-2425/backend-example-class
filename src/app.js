@@ -1,4 +1,5 @@
 const express = require("express")
+require("express-async-errors")
 const { initDb } = require("./models")
 const loginRouter = require("./controllers/login")
 const notesRouter = require("./controllers/notes")
@@ -15,7 +16,7 @@ app.use("/api/login", loginRouter)
 app.use("/api/notes", notesRouter)
 app.use("/api/users", usersRouter)
 
-app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)
+app.use(middleware.unknownEndpoint)
 
 module.exports = app
