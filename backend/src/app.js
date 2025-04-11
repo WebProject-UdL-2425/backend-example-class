@@ -1,5 +1,6 @@
 const express = require("express")
 require("express-async-errors")
+const cors = require("cors")
 const { initDb } = require("./models")
 const loginRouter = require("./controllers/login")
 const notesRouter = require("./controllers/notes")
@@ -7,6 +8,8 @@ const usersRouter = require("./controllers/users")
 const middleware = require("./utils/middleware")
 
 const app = express()
+app.use(cors())
+
 initDb()
 
 app.use(express.json())
