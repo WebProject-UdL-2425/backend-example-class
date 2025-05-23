@@ -1,16 +1,31 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import Note from './components/Note'
+import { Notes, Note } from "./components/Notes"
+import { useState, useEffect } from "react"
 import loginService from './services/login'
 import noteService from './services/noteService'
-
+import LoginForm from "./components/LoginForm"
+import {
+  BrowserRouter as Router,
+  Routes, Route, Link,
+  Navigate
+} from "react-router-dom"
 
 const App = () => {
-  const [notes, setNotes] = useState([])
-  const [newNoteText, setNewNoteText] = useState('')
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
+  const [notes, setNotes] = useState([])
+
+  useEffect(() => {
+    noteService.getAll().then(initialNotes => setNotes(initialNotes))
+  }, [])
+
+  const addNote = (note) => {
+    const noteObject = {
+      content: note.content,
+      important: Math.random() < 0.5,
+      id: notes.length + 1,
+    }
+    noteService.create(noteObject)
+      .then(response => setNotes(notes.concat(response)))
+  }
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedNoteappUser')
@@ -19,89 +34,39 @@ const App = () => {
       setUser(user)
       noteService.setToken(user.token)
     }
-    noteService
-      .getAll().then(initialNotes => {
-        setNotes(initialNotes)
-      })
   }, [])
 
-  const handleLogin = async (event) => {
-    event.preventDefault()
+  const handleLogin = async ({ username, password }) => {
     try {
       const user = await loginService.login({ username, password, })
       window.localStorage.setItem('loggedNoteappUser', JSON.stringify(user))
       noteService.setToken(user.token)
       setUser(user)
-      setUsername('')
-      setPassword('')
     } catch (exception) {
       // TODO: Error handling
       console.log('Wrong credentials')
     }
   }
 
-  const handleNoteTextChange = (event) => {
-    console.log(event.target.value)
-    setNewNoteText(event.target.value)
-  }
-
-  const addNote = (event) => {
-    event.preventDefault()
-    const noteObject = {
-      content: newNoteText,
-      important: Math.random() < 0.5,
-      id: notes.length + 1,
-    }
-    noteService.create(noteObject)
-      .then(response => {
-        setNotes(notes.concat(response))
-        setNewNoteText("")
-      })
-  }
-
-  const loginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div>
-        username
-        <input type="text" value={username} name="Username"
-          onChange={({ target }) => setUsername(target.value)} />
-      </div>
-      <div>
-        password
-        <input type="password" value={password} name="Password"
-          onChange={({ target }) => setPassword(target.value)} />
-      </div>
-      <button type="submit">login</button>
-    </form>
-  )
-
-  const noteForm = () => (
-    <form onSubmit={addNote}>
-      <input
-        value={newNoteText}
-        onChange={handleNoteTextChange}
-      />
-      <button type="submit">save</button>
-    </form>
-  )
-
+  const padding = { padding: 5 }
   return (
-    <div>
-      <h1>Notes</h1>
+    <Router>
+      <div>
+        <Link style={padding} to="/">home</Link>
+        <Link style={padding} to="/notes">notes</Link>
+        {user
+          ? <em>{user.username} logged in</em>
+          : <Link style={padding} to="/login">login</Link>
+        }
+      </div>
 
-      {user === null ?
-        loginForm() :
-        <div>
-          <p>Hello, {user.name}!</p>
-          {noteForm()}
-          <ul>
-            {notes.map(note =>
-              <Note key={note.id} note={note} />
-            )}
-          </ul>
-        </div>
-      }
-    </div>
+      <Routes>
+        <Route path="/notes/:id" element={<Note notes={notes} />} />
+        <Route path="/notes" element={user ? <Notes notes={notes} onAddNote={addNote} /> : <Navigate replace to="/login" />} />
+        <Route path="/login" element={<LoginForm onLogin={handleLogin} />} />
+        <Route path="/" element={<div><p>Welcome!</p></div>} />
+      </Routes>
+    </Router>
   )
 }
 
